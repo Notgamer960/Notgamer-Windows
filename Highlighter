@@ -1,65 +1,40 @@
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
+local UserInputService = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
 
 local ScreenGui = Instance.new("ScreenGui")
 ScreenGui.Name = "ESP_GUI"
 ScreenGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
 
+local ButtonFrame = Instance.new("Frame")
+ButtonFrame.Size = UDim2.new(0, 170, 0, 130)
+ButtonFrame.Position = UDim2.new(0.05, 0, 0.1, 0)
+ButtonFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+ButtonFrame.Active = true
+ButtonFrame.Draggable = true
+ButtonFrame.Parent = ScreenGui
+
 local ToggleButton = Instance.new("TextButton")
-ToggleButton.Size = UDim2.new(0, 150, 0, 50)
-ToggleButton.Position = UDim2.new(0.05, 0, 0.1, 0)
-ToggleButton.Text = "Toggle ESP"
-ToggleButton.Parent = ScreenGui
+ToggleButton.Size = UDim2.new(1, -20, 0, 50)
+ToggleButton.Position = UDim2.new(0, 10, 0, 10)
+ToggleButton.Text = "Toggle Names"
+ToggleButton.Parent = ButtonFrame
 ToggleButton.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
 ToggleButton.TextColor3 = Color3.fromRGB(255, 255, 255)
 
-local UIS = game:GetService("UserInputService")
-local dragging = false
-local dragStart, startPos
+local TracerButton = Instance.new("TextButton")
+TracerButton.Size = UDim2.new(1, -20, 0, 50)
+TracerButton.Position = UDim2.new(0, 10, 0, 70)
+TracerButton.Text = "Toggle Tracers"
+TracerButton.Parent = ButtonFrame
+TracerButton.BackgroundColor3 = Color3.fromRGB(50, 100, 50)
+TracerButton.TextColor3 = Color3.fromRGB(255, 255, 255)
 
-local function update(input)
-	local delta = input.Position - dragStart
-	ToggleButton.Position = UDim2.new(
-		startPos.X.Scale, startPos.X.Offset + delta.X,
-		startPos.Y.Scale, startPos.Y.Offset + delta.Y
-	)
-end
-
-ToggleButton.InputBegan:Connect(function(input)
-	if input.UserInputType == Enum.UserInputType.MouseButton1 
-		or input.UserInputType == Enum.UserInputType.Touch then
-		dragging = true
-		dragStart = input.Position
-		startPos = ToggleButton.Position
-
-		input.Changed:Connect(function()
-			if input.UserInputState == Enum.UserInputState.End then
-				dragging = false
-			end
-		end)
-	end
-end)
-
-UIS.InputChanged:Connect(function(input)
-	if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement 
-		or input.UserInputType == Enum.UserInputType.Touch) then
-		update(input)
-	end
-end)
-
--- ESP SYSTEM
 local ESPEnabled = false
 local keywords = { "chest", "treasure", "coal", "gas", "oil", "fuel" }
 
 local customNames = {
-	["Chest Lid"] = "",
-	["ChestLid"] = "",
-	["Chest lid"] = "",
-	["chest lid"] = "",
-	["Chestlid"] = "",
-	["chestlid"] = "",
-	["Item"] = "",
-	["item"] = "",
 	["Item Chest"] = "Wooden Chest",
 	["ItemChest"] = "Wooden Chest",
 	["Item Chest2"] = "Good Chest",
@@ -74,8 +49,21 @@ local customNames = {
 	["Item Chest6"] = "Ruby Chest",
 }
 
+local excname = {
+	["Chest Lid"] = "",
+	["ChestLid"] = "",
+	["Chest lid"] = "",
+	["chest lid"] = "",
+	["Chestlid"] = "",
+	["chestlid"] = "",
+	["Item"] = "",
+	["item"] = "",
+}
+
 local function isTargetModel(model)
 	if not model:IsA("Model") then return false end
+	if excname[model.Name] ~= nil then return false end
+
 	local name = string.lower(model.Name)
 	for _, word in ipairs(keywords) do
 		if string.find(name, word) then
@@ -109,15 +97,6 @@ local function addESP(model)
 				label.Parent = billboard
 			end
 		end
-
-		if not model:FindFirstChild("ESP_Highlight") then
-			local highlight = Instance.new("Highlight")
-			highlight.Name = "ESP_Highlight"
-			highlight.FillTransparency = 1
-			highlight.OutlineTransparency = 0
-			highlight.OutlineColor = Color3.fromRGB(255, 255, 255)
-			highlight.Parent = model
-		end
 	end
 end
 
@@ -126,7 +105,7 @@ local function enableESP()
 	for _, obj in ipairs(workspace:GetDescendants()) do
 		addESP(obj)
 	end
-	loopConnection = game:GetService("RunService").Heartbeat:Connect(function()
+	loopConnection = RunService.Heartbeat:Connect(function()
 		for _, obj in ipairs(workspace:GetDescendants()) do
 			addESP(obj)
 		end
@@ -149,10 +128,66 @@ end
 ToggleButton.MouseButton1Click:Connect(function()
 	ESPEnabled = not ESPEnabled
 	if ESPEnabled then
-		ToggleButton.Text = "ESP ON"
+		ToggleButton.Text = "Names ON"
 		enableESP()
 	else
-		ToggleButton.Text = "ESP OFF"
+		ToggleButton.Text = "Names OFF"
 		disableESP()
+	end
+end)
+
+local TracerEnabled = false
+local tracerConnection
+local tracerFolder = Instance.new("Folder", workspace)
+tracerFolder.Name = "ESP_Tracers"
+
+local function clearTracers()
+	tracerFolder:ClearAllChildren()
+end
+
+local function drawTracers()
+	clearTracers()
+	local char = LocalPlayer.Character
+	if not char then return end
+	local head = char:FindFirstChild("Head")
+	if not head then return end
+
+	for _, model in ipairs(workspace:GetDescendants()) do
+		if isTargetModel(model) then
+			local part = model.PrimaryPart or model:FindFirstChildWhichIsA("BasePart")
+			if part then
+				local attachment0 = Instance.new("Attachment", head)
+				local attachment1 = Instance.new("Attachment", part)
+
+				local beam = Instance.new("Beam")
+				beam.Color = ColorSequence.new(Color3.fromRGB(0,255,0))
+				beam.FaceCamera = true
+				beam.Width0 = 0.1
+				beam.Width1 = 0.1
+				beam.Attachment0 = attachment0
+				beam.Attachment1 = attachment1
+				beam.Parent = tracerFolder
+			end
+		end
+	end
+end
+
+local function enableTracers()
+	tracerConnection = RunService.Heartbeat:Connect(drawTracers)
+end
+
+local function disableTracers()
+	if tracerConnection then tracerConnection:Disconnect() tracerConnection = nil end
+	clearTracers()
+end
+
+TracerButton.MouseButton1Click:Connect(function()
+	TracerEnabled = not TracerEnabled
+	if TracerEnabled then
+		TracerButton.Text = "Tracers ON"
+		enableTracers()
+	else
+		TracerButton.Text = "Tracers OFF"
+		disableTracers()
 	end
 end)
