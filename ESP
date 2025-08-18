@@ -13,8 +13,42 @@ ToggleButton.Parent = ScreenGui
 ToggleButton.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
 ToggleButton.TextColor3 = Color3.fromRGB(255, 255, 255)
 
-local ESPEnabled = false
+local UIS = game:GetService("UserInputService")
+local dragging = false
+local dragStart, startPos
 
+local function update(input)
+	local delta = input.Position - dragStart
+	ToggleButton.Position = UDim2.new(
+		startPos.X.Scale, startPos.X.Offset + delta.X,
+		startPos.Y.Scale, startPos.Y.Offset + delta.Y
+	)
+end
+
+ToggleButton.InputBegan:Connect(function(input)
+	if input.UserInputType == Enum.UserInputType.MouseButton1 
+		or input.UserInputType == Enum.UserInputType.Touch then
+		dragging = true
+		dragStart = input.Position
+		startPos = ToggleButton.Position
+
+		input.Changed:Connect(function()
+			if input.UserInputState == Enum.UserInputState.End then
+				dragging = false
+			end
+		end)
+	end
+end)
+
+UIS.InputChanged:Connect(function(input)
+	if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement 
+		or input.UserInputType == Enum.UserInputType.Touch) then
+		update(input)
+	end
+end)
+
+-- ESP SYSTEM
+local ESPEnabled = false
 local keywords = { "chest", "treasure", "coal", "gas", "oil", "fuel" }
 
 local customNames = {
@@ -42,14 +76,12 @@ local customNames = {
 
 local function isTargetModel(model)
 	if not model:IsA("Model") then return false end
-
 	local name = string.lower(model.Name)
 	for _, word in ipairs(keywords) do
 		if string.find(name, word) then
 			return true
 		end
 	end
-
 	return false
 end
 
@@ -89,19 +121,23 @@ local function addESP(model)
 	end
 end
 
+local loopConnection
 local function enableESP()
 	for _, obj in ipairs(workspace:GetDescendants()) do
 		addESP(obj)
 	end
-
-	workspace.DescendantAdded:Connect(function(obj)
-		if ESPEnabled then
+	loopConnection = game:GetService("RunService").Heartbeat:Connect(function()
+		for _, obj in ipairs(workspace:GetDescendants()) do
 			addESP(obj)
 		end
 	end)
 end
 
 local function disableESP()
+	if loopConnection then
+		loopConnection:Disconnect()
+		loopConnection = nil
+	end
 	for _, model in ipairs(workspace:GetDescendants()) do
 		local esp1 = model:FindFirstChild("ESP_Billboard")
 		if esp1 then esp1:Destroy() end
