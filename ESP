@@ -17,6 +17,31 @@ local ESPEnabled = false
 
 local keywords = { "chest", "treasure", "coal", "gas", "oil", "fuel" }
 
+local customNames = {
+	["Chest Lid"] = "",
+	["ChestLid"] = "",
+	["Chest lid"] = "",
+	["chest lid"] = "",
+	["Chestlid"] = "",
+	["chestlid"] = "",
+	["Item"] = "",
+	["item"] = "",
+	["Chest"] = "Unknown Chest",
+	["Chest1"] = "Wooden Chest",
+	["Chest2"] = "Good Chest",
+	["Chest3"] = "Iron Chest",
+	["Chest4"] = "Legendary Chest",
+	["Chest5"] = "Gold Chest",
+	["Chest6"] = "Ruby Chest",
+	["chest"] = "Unknown Chest",
+	["chest1"] = "Wooden Chest",
+	["chest2"] = "Good Chest",
+	["chest3"] = "Iron Chest",
+	["chest4"] = "Legendary Chest",
+	["chest5"] = "Gold Chest",
+	["chest6"] = "Ruby Chest",
+}
+
 local function isTargetModel(model)
 	if not model:IsA("Model") then return false end
 
@@ -30,16 +55,6 @@ local function isTargetModel(model)
 	return false
 end
 
-local costumname = {
-	["Chest"] = "Unknown Chest",
-	["Chest1"] = "Wooden Chest",
-	["Chest2"] = "Good Chest",
-	["Chest3"] = "Iron Chest",
-	["Chest4"] = "Legendary Chest",
-	["Chest5"] = "Gold Chest",
-	["Chest6"] = "Ruby Chest",
-}
-
 local function addESP(model)
 	if isTargetModel(model) then
 		if not model:FindFirstChild("ESP_Billboard") then
@@ -48,7 +63,7 @@ local function addESP(model)
 				local billboard = Instance.new("BillboardGui")
 				billboard.Name = "ESP_Billboard"
 				billboard.AlwaysOnTop = true
-				billboard.Size = UDim2.new(0, 100, 0, 50)
+				billboard.Size = UDim2.new(0, 120, 0, 50)
 				billboard.StudsOffset = Vector3.new(0, 3, 0)
 				billboard.Adornee = attachPart
 				billboard.Parent = model
@@ -56,13 +71,22 @@ local function addESP(model)
 				local label = Instance.new("TextLabel")
 				label.Size = UDim2.new(1, 0, 1, 0)
 				label.BackgroundTransparency = 1
-				label.Text = costumname[model.name] or model.Name
+				label.Text = customNames[model.Name] or model.Name
 				label.TextColor3 = Color3.fromRGB(170, 0, 255)
 				label.TextStrokeTransparency = 0
 				label.TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
 				label.TextScaled = true
 				label.Parent = billboard
 			end
+		end
+
+		if not model:FindFirstChild("ESP_Highlight") then
+			local highlight = Instance.new("Highlight")
+			highlight.Name = "ESP_Highlight"
+			highlight.FillTransparency = 1
+			highlight.OutlineTransparency = 0
+			highlight.OutlineColor = Color3.fromRGB(255, 255, 255)
+			highlight.Parent = model
 		end
 	end
 end
@@ -81,8 +105,10 @@ end
 
 local function disableESP()
 	for _, model in ipairs(workspace:GetDescendants()) do
-		local esp = model:FindFirstChild("ESP_Billboard")
-		if esp then esp:Destroy() end
+		local esp1 = model:FindFirstChild("ESP_Billboard")
+		if esp1 then esp1:Destroy() end
+		local esp2 = model:FindFirstChild("ESP_Highlight")
+		if esp2 then esp2:Destroy() end
 	end
 end
 
