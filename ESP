@@ -1,0 +1,71 @@
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "ESP_GUI"
+ScreenGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
+
+local ToggleButton = Instance.new("TextButton")
+ToggleButton.Size = UDim2.new(0, 150, 0, 50)
+ToggleButton.Position = UDim2.new(0.05, 0, 0.1, 0)
+ToggleButton.Text = "Toggle ESP"
+ToggleButton.Parent = ScreenGui
+ToggleButton.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+ToggleButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+
+local ESPEnabled = false
+local ESPFolder = Instance.new("Folder")
+ESPFolder.Name = "ESPFolder"
+ESPFolder.Parent = workspace
+
+local function addESP(object)
+	if object:IsA("BasePart") and not object:FindFirstChild("ESP_Billboard") then
+		local billboard = Instance.new("BillboardGui")
+		billboard.Name = "ESP_Billboard"
+		billboard.AlwaysOnTop = true
+		billboard.Size = UDim2.new(0, 100, 0, 50)
+		billboard.StudsOffset = Vector3.new(0, 2, 0)
+		billboard.Parent = object
+
+		local label = Instance.new("TextLabel")
+		label.Size = UDim2.new(1, 0, 1, 0)
+		label.BackgroundTransparency = 1
+		label.Text = object.Name
+		label.TextColor3 = Color3.fromRGB(0, 255, 0)
+		label.TextScaled = true
+		label.Parent = billboard
+	end
+end
+
+local function enableESP()
+	for _, obj in ipairs(workspace:GetDescendants()) do
+		if obj:IsA("BasePart") then
+			addESP(obj)
+		end
+	end
+
+	workspace.DescendantAdded:Connect(function(obj)
+		if ESPEnabled and obj:IsA("BasePart") then
+			addESP(obj)
+		end
+	end)
+end
+
+local function disableESP()
+	for _, obj in ipairs(workspace:GetDescendants()) do
+		if obj:IsA("BasePart") and obj:FindFirstChild("ESP_Billboard") then
+			obj.ESP_Billboard:Destroy()
+		end
+	end
+end
+
+ToggleButton.MouseButton1Click:Connect(function()
+	ESPEnabled = not ESPEnabled
+	if ESPEnabled then
+		ToggleButton.Text = "ESP ON"
+		enableESP()
+	else
+		ToggleButton.Text = "ESP OFF"
+		disableESP()
+	end
+end)
