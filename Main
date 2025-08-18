@@ -5,12 +5,12 @@ local Window = Rayfield:CreateWindow({
    Icon = 0, -- Icon in Topbar. Can use Lucide Icons (string) or Roblox Image (number). 0 to use no icon (default).
    LoadingTitle = "Notgamer Windows Exploit",
    LoadingSubtitle = "by Notgamer",
-   ShowText = "Rayfield", -- for mobile users to unhide rayfield, change if you'd like
+   ShowText = "Windows", -- for mobile users to unhide rayfield, change if you'd like
    Theme = "Default", -- Check https://docs.sirius.menu/rayfield/configuration/themes
 
    ToggleUIKeybind = "K", -- The keybind to toggle the UI visibility (string like "K" or Enum.KeyCode)
 
-   DisableRayfieldPrompts = false,
+   DisableRayfieldPrompts = true,
    DisableBuildWarnings = false, -- Prevents Rayfield from warning when the script has a version mismatch with the interface
 
    ConfigurationSaving = {
@@ -37,10 +37,10 @@ local Window = Rayfield:CreateWindow({
    }
 })
 
-local Tab1 = Window:CreateTab("Vision", nil) -- Title, Image
+local Tab1 = Window:CreateTab("Vision👁", nil) -- Title, Image
 local Section1 = Tab1:CreateSection("ESP")
 local Button1 = Tab1:CreateButton({
-   Name = "ESP",
+   Name = "Highlighter",
    Callback = function()
    loadstring(game:HttpGet("https://raw.githubusercontent.com/Notgamer960/Notgamer-Windows/refs/heads/Vision/ESP"))()
    end,
