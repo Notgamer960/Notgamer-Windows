@@ -15,7 +15,7 @@ ToggleButton.TextColor3 = Color3.fromRGB(255, 255, 255)
 
 local ESPEnabled = false
 
-local keywords = { "chest", "crate", "treasure", "coal", "gas", "oil", "fuel" }
+local keywords = { "chest", "treasure", "coal", "gas", "oil", "fuel" }
 
 local function isTargetModel(model)
 	if not model:IsA("Model") then return false end
@@ -29,6 +29,16 @@ local function isTargetModel(model)
 
 	return false
 end
+
+local costumname = {
+	["Chest"] = "Unknown Chest",
+	["Chest1"] = "Wooden Chest",
+	["Chest2"] = "Good Chest",
+	["Chest3"] = "Iron Chest",
+	["Chest4"] = "Legendary Chest",
+	["Chest5"] = "Gold Chest",
+	["Chest6"] = "Ruby Chest",
+}
 
 local function addESP(model)
 	if isTargetModel(model) then
@@ -46,7 +56,7 @@ local function addESP(model)
 				local label = Instance.new("TextLabel")
 				label.Size = UDim2.new(1, 0, 1, 0)
 				label.BackgroundTransparency = 1
-				label.Text = model.Name
+				label.Text = costumname[model.name] or model.Name
 				label.TextColor3 = Color3.fromRGB(170, 0, 255)
 				label.TextStrokeTransparency = 0
 				label.TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
