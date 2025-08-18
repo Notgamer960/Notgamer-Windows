@@ -50,6 +50,7 @@ local customNames = {
 }
 
 local excname = {
+	["Toilet] = "",
 	["Chest Lid"] = "",
 	["ChestLid"] = "",
 	["Chest lid"] = "",
