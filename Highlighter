@@ -31,6 +31,25 @@ TracerButton.Parent = ButtonFrame
 TracerButton.BackgroundColor3 = Color3.fromRGB(50, 100, 50)
 TracerButton.TextColor3 = Color3.fromRGB(255, 255, 255)
 
+local MasterToggle = Instance.new("TextButton")
+MasterToggle.Size = UDim2.new(0, 120, 0, 30)
+MasterToggle.Position = UDim2.new(0, 850, 0, -40)
+MasterToggle.Text = "Hide Highlighter Menu"
+MasterToggle.Parent = ScreenGui
+MasterToggle.BackgroundColor3 = Color3.fromRGB(100, 50, 50)
+MasterToggle.TextColor3 = Color3.fromRGB(255, 255, 255)
+
+local frameVisible = true
+MasterToggle.MouseButton1Click:Connect(function()
+	frameVisible = not frameVisible
+	ButtonFrame.Visible = frameVisible
+	if frameVisible then
+		MasterToggle.Text = "Hide Highlighter Menu"
+	else
+		MasterToggle.Text = "Show Highlighter Menu"
+	end
+end)
+
 local ESPEnabled = false
 local keywords = { "chest", "treasure", "coal", "gas", "oil", "fuel" }
 
@@ -50,7 +69,6 @@ local customNames = {
 }
 
 local excname = {
-	["Toilet"] = "",
 	["Chest Lid"] = "",
 	["ChestLid"] = "",
 	["Chest lid"] = "",
