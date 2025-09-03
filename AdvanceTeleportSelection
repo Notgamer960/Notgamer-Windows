@@ -30,12 +30,12 @@ local excname = {
 }
 
 local customNames = {
-	["ItemChest"]  = {Name="Wooden Chest",   Color=Color3.fromRGB(139, 69, 19), Texture="rbxassetid://136522345760805"},
-	["ItemChest2"] = {Name="Good Chest",     Color=Color3.fromRGB(0, 200, 0),   Texture="rbxassetid://136522345760805"},
-	["ItemChest3"] = {Name="Iron Chest",     Color=Color3.fromRGB(169, 169, 169), Texture="rbxassetid://136522345760805"},
-	["ItemChest4"] = {Name="Legendary Chest",Color=Color3.fromRGB(255, 215, 0), Texture="rbxassetid://136522345760805"},
-	["ItemChest5"] = {Name="Gold Chest",     Color=Color3.fromRGB(255, 223, 0), Texture="rbxassetid://136522345760805"},
-	["ItemChest6"] = {Name="Ruby Chest",     Color=Color3.fromRGB(220, 20, 60), Texture="rbxassetid://136522345760805"},
+	["Item Chest"]  = {Name="Wooden Chest",   Color=Color3.fromRGB(139, 69, 19), Texture="rbxassetid://136522345760805"},
+	["Item Chest2"] = {Name="Good Chest",     Color=Color3.fromRGB(0, 200, 0),   Texture="rbxassetid://136522345760805"},
+	["Item Chest3"] = {Name="Iron Chest",     Color=Color3.fromRGB(169, 169, 169), Texture="rbxassetid://136522345760805"},
+	["Item Chest4"] = {Name="Legendary Chest",Color=Color3.fromRGB(255, 215, 0), Texture="rbxassetid://136522345760805"},
+	["Item Chest5"] = {Name="Gold Chest",     Color=Color3.fromRGB(255, 223, 0), Texture="rbxassetid://136522345760805"},
+	["Item Chest6"] = {Name="Ruby Chest",     Color=Color3.fromRGB(220, 20, 60), Texture="rbxassetid://136522345760805"},
 }
 
 local function isTargetModel(model)
@@ -50,57 +50,66 @@ local function isTargetModel(model)
 	return false
 end
 
-local function showHighlights()
+local function clearHighlights()
 	for _, h in ipairs(highlights) do if h and h.Parent then h:Destroy() end end
 	for _, b in ipairs(billboardGuis) do if b and b.Parent then b:Destroy() end end
 	highlights = {}
 	billboardGuis = {}
 	whitelistParts = {}
+	for _, obj in ipairs(workspace:GetDescendants()) do
+		if obj:IsA("Highlight") and obj.Name == "TeleportHighlight" then
+			obj:Destroy()
+		end
+		if obj:IsA("BillboardGui") and obj.Name == "TeleportBillboard" then
+			obj:Destroy()
+		end
+	end
+end
 
+local function showHighlights()
+	clearHighlights()
 	for _, obj in ipairs(workspace:GetDescendants()) do
 		local model = obj:IsA("Model") and obj or obj:FindFirstAncestorOfClass("Model")
 		if isTargetModel(model) then
 			local primary = model.PrimaryPart or model:FindFirstChildWhichIsA("BasePart")
 			if primary then
-				if not model:FindFirstChild("TeleportHighlight") then
-					local data = customNames[model.Name]
-					local highlight = Instance.new("Highlight")
-					highlight.Name = "TeleportHighlight"
-					highlight.FillColor = (data and data.Color) or Color3.fromRGB(0,255,0)
-					highlight.OutlineColor = Color3.fromRGB(255,255,255)
-					highlight.FillTransparency = 0.5
-					highlight.Adornee = model
-					highlight.Parent = model
-					table.insert(highlights, highlight)
+				local data = customNames[model.Name]
+				local highlight = Instance.new("Highlight")
+				highlight.Name = "TeleportHighlight"
+				highlight.FillColor = (data and data.Color) or Color3.fromRGB(0,255,0)
+				highlight.OutlineColor = Color3.fromRGB(255,255,255)
+				highlight.FillTransparency = 0.5
+				highlight.Adornee = model
+				highlight.Parent = model
+				table.insert(highlights, highlight)
 
-					local billboard = Instance.new("BillboardGui")
-					billboard.Name = "TeleportBillboard"
-					billboard.AlwaysOnTop = true
-					billboard.Size = UDim2.new(0, 150, 0, 60)
-					billboard.StudsOffset = Vector3.new(0, 4, 0)
-					billboard.Adornee = primary
-					billboard.Parent = model
+				local billboard = Instance.new("BillboardGui")
+				billboard.Name = "TeleportBillboard"
+				billboard.AlwaysOnTop = true
+				billboard.Size = UDim2.new(0, 150, 0, 60)
+				billboard.StudsOffset = Vector3.new(0, 4, 0)
+				billboard.Adornee = primary
+				billboard.Parent = model
 
-					local icon = Instance.new("ImageLabel")
-					icon.Size = UDim2.new(0, 40, 0, 40)
-					icon.Position = UDim2.new(0, 0, 0.5, -20)
-					icon.BackgroundTransparency = 1
-					icon.Image = (data and data.Texture) or "rbxassetid://136522345760805"
-					icon.Parent = billboard
+				local icon = Instance.new("ImageLabel")
+				icon.Size = UDim2.new(0, 40, 0, 40)
+				icon.Position = UDim2.new(0, 0, 0.5, -20)
+				icon.BackgroundTransparency = 1
+				icon.Image = (data and data.Texture) or "rbxassetid://136522345760805"
+				icon.Parent = billboard
 
-					local label = Instance.new("TextLabel")
-					label.Size = UDim2.new(1, -50, 1, 0)
-					label.Position = UDim2.new(0, 50, 0, 0)
-					label.BackgroundTransparency = 1
-					label.Text = (data and data.Name) or model.Name
-					label.TextColor3 = (data and data.Color) or Color3.new(1,1,1)
-					label.TextStrokeTransparency = 0
-					label.TextStrokeColor3 = Color3.new(0,0,0)
-					label.TextScaled = true
-					label.Parent = billboard
+				local label = Instance.new("TextLabel")
+				label.Size = UDim2.new(1, -50, 1, 0)
+				label.Position = UDim2.new(0, 50, 0, 0)
+				label.BackgroundTransparency = 1
+				label.Text = (data and data.Name) or model.Name
+				label.TextColor3 = (data and data.Color) or Color3.new(1,1,1)
+				label.TextStrokeTransparency = 0
+				label.TextStrokeColor3 = Color3.new(0,0,0)
+				label.TextScaled = true
+				label.Parent = billboard
 
-					table.insert(billboardGuis, billboard)
-				end
+				table.insert(billboardGuis, billboard)
 				for _, d in ipairs(model:GetDescendants()) do
 					if d:IsA("BasePart") then
 						table.insert(whitelistParts, d)
@@ -138,11 +147,7 @@ TeleportButton.MouseButton1Click:Connect(function()
 		showHighlights()
 	else
 		TeleportButton.Text = "Show Teleport Targets"
-		for _, h in ipairs(highlights) do if h and h.Parent then h:Destroy() end end
-		for _, b in ipairs(billboardGuis) do if b and b.Parent then b:Destroy() end end
-		highlights = {}
-		billboardGuis = {}
-		whitelistParts = {}
+		clearHighlights()
 	end
 end)
 
@@ -188,11 +193,7 @@ local function handleTeleport(screenPos: Vector2)
 	tweenTeleport(targetPart)
 	teleportMode = false
 	TeleportButton.Text = "Show Teleport Targets"
-	for _, h in ipairs(highlights) do if h and h.Parent then h:Destroy() end end
-	for _, b in ipairs(billboardGuis) do if b and b.Parent then b:Destroy() end end
-	highlights = {}
-	billboardGuis = {}
-	whitelistParts = {}
+	clearHighlights()
 end
 
 Mouse.Button1Down:Connect(function()
