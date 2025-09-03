@@ -1,0 +1,204 @@
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+local Mouse = LocalPlayer:GetMouse()
+local TweenService = game:GetService("TweenService")
+local Workspace = game:GetService("Workspace")
+local UserInputService = game:GetService("UserInputService")
+
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "Teleport_GUI"
+ScreenGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
+
+local TeleportButton = Instance.new("TextButton")
+TeleportButton.Size = UDim2.new(0, 220, 0, 50)
+TeleportButton.Position = UDim2.new(0.4, 0, 0.85, 0)
+TeleportButton.Text = "Show Teleport Targets"
+TeleportButton.BackgroundColor3 = Color3.fromRGB(50, 150, 250)
+TeleportButton.TextColor3 = Color3.new(1,1,1)
+TeleportButton.Parent = ScreenGui
+
+local highlights = {}
+local billboardGuis = {}
+local whitelistParts = {}
+local teleportMode = false
+
+local keywords = { "chest", "treasure", "coal", "gas", "oil", "fuel" }
+
+local excname = {
+	["Chest Lid"] = true, ["ChestLid"] = true, ["Chest lid"] = true, ["chest lid"] = true,
+	["Chestlid"] = true, ["chestlid"] = true, ["Item"] = true, ["item"] = true,
+}
+
+local customNames = {
+	["ItemChest"]  = {Name="Wooden Chest",   Color=Color3.fromRGB(139, 69, 19), Texture="rbxassetid://136522345760805"},
+	["ItemChest2"] = {Name="Good Chest",     Color=Color3.fromRGB(0, 200, 0),   Texture="rbxassetid://136522345760805"},
+	["ItemChest3"] = {Name="Iron Chest",     Color=Color3.fromRGB(169, 169, 169), Texture="rbxassetid://136522345760805"},
+	["ItemChest4"] = {Name="Legendary Chest",Color=Color3.fromRGB(255, 215, 0), Texture="rbxassetid://136522345760805"},
+	["ItemChest5"] = {Name="Gold Chest",     Color=Color3.fromRGB(255, 223, 0), Texture="rbxassetid://136522345760805"},
+	["ItemChest6"] = {Name="Ruby Chest",     Color=Color3.fromRGB(220, 20, 60), Texture="rbxassetid://136522345760805"},
+}
+
+local function isTargetModel(model)
+	if not model or not model:IsA("Model") then return false end
+	if excname[model.Name] then return false end
+	local name = string.lower(model.Name)
+	for _, word in ipairs(keywords) do
+		if string.find(name, word) then
+			return true
+		end
+	end
+	return false
+end
+
+local function showHighlights()
+	for _, h in ipairs(highlights) do if h and h.Parent then h:Destroy() end end
+	for _, b in ipairs(billboardGuis) do if b and b.Parent then b:Destroy() end end
+	highlights = {}
+	billboardGuis = {}
+	whitelistParts = {}
+
+	for _, obj in ipairs(workspace:GetDescendants()) do
+		local model = obj:IsA("Model") and obj or obj:FindFirstAncestorOfClass("Model")
+		if isTargetModel(model) then
+			local primary = model.PrimaryPart or model:FindFirstChildWhichIsA("BasePart")
+			if primary then
+				if not model:FindFirstChild("TeleportHighlight") then
+					local data = customNames[model.Name]
+					local highlight = Instance.new("Highlight")
+					highlight.Name = "TeleportHighlight"
+					highlight.FillColor = (data and data.Color) or Color3.fromRGB(0,255,0)
+					highlight.OutlineColor = Color3.fromRGB(255,255,255)
+					highlight.FillTransparency = 0.5
+					highlight.Adornee = model
+					highlight.Parent = model
+					table.insert(highlights, highlight)
+
+					local billboard = Instance.new("BillboardGui")
+					billboard.Name = "TeleportBillboard"
+					billboard.AlwaysOnTop = true
+					billboard.Size = UDim2.new(0, 150, 0, 60)
+					billboard.StudsOffset = Vector3.new(0, 4, 0)
+					billboard.Adornee = primary
+					billboard.Parent = model
+
+					local icon = Instance.new("ImageLabel")
+					icon.Size = UDim2.new(0, 40, 0, 40)
+					icon.Position = UDim2.new(0, 0, 0.5, -20)
+					icon.BackgroundTransparency = 1
+					icon.Image = (data and data.Texture) or "rbxassetid://136522345760805"
+					icon.Parent = billboard
+
+					local label = Instance.new("TextLabel")
+					label.Size = UDim2.new(1, -50, 1, 0)
+					label.Position = UDim2.new(0, 50, 0, 0)
+					label.BackgroundTransparency = 1
+					label.Text = (data and data.Name) or model.Name
+					label.TextColor3 = (data and data.Color) or Color3.new(1,1,1)
+					label.TextStrokeTransparency = 0
+					label.TextStrokeColor3 = Color3.new(0,0,0)
+					label.TextScaled = true
+					label.Parent = billboard
+
+					table.insert(billboardGuis, billboard)
+				end
+				for _, d in ipairs(model:GetDescendants()) do
+					if d:IsA("BasePart") then
+						table.insert(whitelistParts, d)
+					end
+				end
+			end
+		end
+	end
+end
+
+local function tweenTeleport(targetPart)
+	local char = LocalPlayer.Character
+	if not char then return end
+	local root = char:FindFirstChild("HumanoidRootPart")
+	if not root then return end
+	local goalCFrame = targetPart.CFrame + Vector3.new(0, 5, 0)
+	local oldCollide = root.CanCollide
+	local oldAnchor = root.Anchored
+	root.CanCollide = false
+	root.Anchored = true
+	local tween = TweenService:Create(root, TweenInfo.new(0.25, Enum.EasingStyle.Linear, Enum.EasingDirection.Out), {CFrame = goalCFrame})
+	tween:Play()
+	tween.Completed:Connect(function()
+		root.AssemblyLinearVelocity = Vector3.zero
+		root.AssemblyAngularVelocity = Vector3.zero
+		root.Anchored = oldAnchor
+		root.CanCollide = oldCollide
+	end)
+end
+
+TeleportButton.MouseButton1Click:Connect(function()
+	teleportMode = not teleportMode
+	if teleportMode then
+		TeleportButton.Text = "Tap/Click Target to Teleport"
+		showHighlights()
+	else
+		TeleportButton.Text = "Show Teleport Targets"
+		for _, h in ipairs(highlights) do if h and h.Parent then h:Destroy() end end
+		for _, b in ipairs(billboardGuis) do if b and b.Parent then b:Destroy() end end
+		highlights = {}
+		billboardGuis = {}
+		whitelistParts = {}
+	end
+end)
+
+local function pickTargetFromScreen(screenPos: Vector2)
+	if #whitelistParts == 0 then return nil end
+	local cam = Workspace.CurrentCamera
+	local ray = cam:ScreenPointToRay(screenPos.X, screenPos.Y)
+	local params = RaycastParams.new()
+	params.FilterType = Enum.RaycastFilterType.Whitelist
+	params.FilterDescendantsInstances = whitelistParts
+	params.IgnoreWater = true
+	local hit = Workspace:Raycast(ray.Origin, ray.Direction * 10000, params)
+	if hit and hit.Instance then
+		return hit.Instance
+	end
+	local bestPart, bestDist2 = nil, math.huge
+	for _, part in ipairs(whitelistParts) do
+		if part.Parent then
+			local v3, onScreen = cam:WorldToViewportPoint(part.Position)
+			if onScreen then
+				local dx, dy = v3.X - screenPos.X, v3.Y - screenPos.Y
+				local d2 = dx*dx + dy*dy
+				if d2 < bestDist2 then
+					bestDist2 = d2
+					bestPart = part
+				end
+			end
+		end
+	end
+	if bestPart and bestDist2 <= (50*50) then
+		return bestPart
+	end
+	return nil
+end
+
+local function handleTeleport(screenPos: Vector2)
+	if not teleportMode then return end
+	local picked = pickTargetFromScreen(screenPos)
+	if not picked then return end
+	local model = picked:FindFirstAncestorOfClass("Model")
+	if not model or not isTargetModel(model) then return end
+	local targetPart = model.PrimaryPart or picked
+	tweenTeleport(targetPart)
+	teleportMode = false
+	TeleportButton.Text = "Show Teleport Targets"
+	for _, h in ipairs(highlights) do if h and h.Parent then h:Destroy() end end
+	for _, b in ipairs(billboardGuis) do if b and b.Parent then b:Destroy() end end
+	highlights = {}
+	billboardGuis = {}
+	whitelistParts = {}
+end
+
+Mouse.Button1Down:Connect(function()
+	handleTeleport(Vector2.new(Mouse.X, Mouse.Y))
+end)
+
+UserInputService.TouchTap:Connect(function(taps)
+	if #taps > 0 then handleTeleport(taps[1]) end
+end)
