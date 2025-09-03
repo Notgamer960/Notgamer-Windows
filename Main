@@ -3,7 +3,7 @@ local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 local Window = Rayfield:CreateWindow({
    Name = "Notgamer 99NITF Windows Exploit",
    Icon = 0, -- Icon in Topbar. Can use Lucide Icons (string) or Roblox Image (number). 0 to use no icon (default).
-   LoadingTitle = "Notgamer Windows Exploit",
+   LoadingTitle = "Notgamer 99 NITF Windows Exploit",
    LoadingSubtitle = "by Notgamer",
    ShowText = "Windows", -- for mobile users to unhide rayfield, change if you'd like
    Theme = "Default", -- Check https://docs.sirius.menu/rayfield/configuration/themes
@@ -43,5 +43,14 @@ local Button1 = Tab1:CreateButton({
    Name = "Highlighter",
    Callback = function()
    loadstring(game:HttpGet("https://raw.githubusercontent.com/Notgamer960/Notgamer-Windows/refs/heads/Vision/Highlighter"))()
+   end,
+})
+
+local Tab2 = Window:CreateTab("Players", nil) -- Title, Image
+local Section2 = Tab2:CreateSection("Teleportation")
+local Button2 = Tab2:CreateButton({
+   Name = "Teleport Selection",
+   Callback = function()
+   loadstring(game:HttpGet("https://raw.githubusercontent.com/Notgamer960/Notgamer-Windows/refs/heads/Player/AdvanceTeleportSelection"))()
    end,
 })
